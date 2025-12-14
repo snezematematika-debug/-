@@ -18,17 +18,22 @@ const App: React.FC = () => {
 
     switch (activeSubModule) {
       case SubModuleId.LESSON:
+        // LessonView already has internal scrolling (h-full overflow-y-auto)
         return <LessonView rootNode={activeModule.lessonRoot} />;
       case SubModuleId.EXPLORE:
         return (
-          <div className="flex justify-center p-8">
-            <TriangleVisualizer moduleId={activeModule.id} />
+          <div className="h-full overflow-y-auto">
+            <div className="flex justify-center p-8 pb-32 min-h-min">
+              <TriangleVisualizer moduleId={activeModule.id} />
+            </div>
           </div>
         );
       case SubModuleId.TEST:
         return (
-          <div className="p-8">
-            <QuizView questions={activeModule.quiz} />
+          <div className="h-full overflow-y-auto">
+            <div className="p-8 pb-32 min-h-min">
+              <QuizView questions={activeModule.quiz} />
+            </div>
           </div>
         );
       default:
@@ -40,7 +45,7 @@ const App: React.FC = () => {
     // DASHBOARD VIEW
     return (
       <div className="min-h-screen bg-slate-50 font-sans">
-        <header className="bg-white border-b border-slate-200 py-6 px-8 sticky top-0 z-10">
+        <header className="bg-white border-b border-slate-200 py-6 px-8 sticky top-0 z-10 shadow-sm">
            <div className="max-w-6xl mx-auto flex items-center gap-3">
              <div className="p-2 bg-blue-600 rounded-lg text-white">
                 <GraduationCap size={32} />
@@ -62,7 +67,6 @@ const App: React.FC = () => {
                         className="group bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:border-blue-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
                     >
                         <div className={`h-32 ${module.color} flex items-center justify-center text-white`}>
-                           {/* Simple Icon Logic based on constants */}
                            <GraduationCap size={48} className="opacity-80 group-hover:scale-110 transition-transform duration-500" />
                         </div>
                         <div className="p-6 flex-1 flex flex-col">
@@ -77,7 +81,6 @@ const App: React.FC = () => {
             </div>
         </main>
         
-        {/* Footer */}
         <footer className="text-center py-8 text-slate-400 text-sm">
             Триаголници © 2024
         </footer>
@@ -89,70 +92,83 @@ const App: React.FC = () => {
 
   // MODULE VIEW
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-       {/* Top Navigation Bar (Mobile: Back + Title only | Desktop: Back + Title + Tabs) */}
-       <header className="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-20 shadow-sm">
-          <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+    <div className="h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
+       {/* Top Header */}
+       <header className="bg-white border-b border-slate-200 px-4 py-3 shrink-0 flex items-center justify-between z-20 shadow-sm">
+          <div className="flex items-center gap-3">
              <button 
                 onClick={() => { setActiveModuleId(null); setActiveSubModule(SubModuleId.LESSON); }}
-                className="p-2 hover:bg-slate-100 rounded-full text-slate-600 transition shrink-0"
+                className="p-2 hover:bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition"
                 title="Назад кон мени"
              >
                 <ChevronLeft size={24} />
              </button>
-             <h1 className="text-base md:text-lg font-bold text-slate-800 truncate">{activeModule.title}</h1>
-          </div>
-          
-          {/* Desktop Tabs (Hidden on Mobile) */}
-          <div className="hidden md:flex bg-slate-100 p-1 rounded-xl">
-            <button 
-                onClick={() => setActiveSubModule(SubModuleId.LESSON)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${activeSubModule === SubModuleId.LESSON ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-                <BookOpen size={16} /> Лекција
-            </button>
-            <button 
-                onClick={() => setActiveSubModule(SubModuleId.EXPLORE)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${activeSubModule === SubModuleId.EXPLORE ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-                <Compass size={16} /> Истражувај
-            </button>
-            <button 
-                onClick={() => setActiveSubModule(SubModuleId.TEST)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${activeSubModule === SubModuleId.TEST ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-                <CheckSquare size={16} /> Тестирај се
-            </button>
+             <h1 className="text-lg font-bold text-slate-800 truncate">{activeModule.title}</h1>
           </div>
        </header>
 
-       {/* Content Area (Added padding bottom for mobile nav) */}
-       <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
-          {renderContent()}
-       </main>
+       <div className="flex-1 flex overflow-hidden relative">
+          {/* Desktop Sidebar */}
+          <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col shrink-0 z-10 transition-all">
+              <div className="p-4 space-y-2">
+                  <button 
+                      onClick={() => setActiveSubModule(SubModuleId.LESSON)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${activeSubModule === SubModuleId.LESSON ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100' : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                      <BookOpen size={20} /> Лекција
+                  </button>
+                  <button 
+                      onClick={() => setActiveSubModule(SubModuleId.EXPLORE)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${activeSubModule === SubModuleId.EXPLORE ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100' : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                      <Compass size={20} /> Истражувај
+                  </button>
+                  <button 
+                      onClick={() => setActiveSubModule(SubModuleId.TEST)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${activeSubModule === SubModuleId.TEST ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100' : 'text-slate-600 hover:bg-slate-50'}`}
+                  >
+                      <CheckSquare size={20} /> Тестирај се
+                  </button>
+              </div>
+              
+              <div className="mt-auto p-4">
+                 <div className="bg-slate-100 rounded-xl p-4 text-center">
+                    <p className="text-xs text-slate-500 mb-2">Напредок во модулот</p>
+                    <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div className="bg-blue-500 h-full w-2/3 rounded-full"></div>
+                    </div>
+                 </div>
+              </div>
+          </aside>
 
-       {/* Mobile Bottom Navigation (Hidden on Desktop) */}
-       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2 flex justify-around items-center z-30 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] safe-area-bottom">
+          {/* Main Content Area */}
+          <main className="flex-1 relative overflow-hidden bg-slate-50">
+             {renderContent()}
+          </main>
+       </div>
+
+       {/* Mobile Bottom Navigation */}
+       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-2 flex justify-around items-center z-30 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <button 
                 onClick={() => setActiveSubModule(SubModuleId.LESSON)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full transition ${activeSubModule === SubModuleId.LESSON ? 'text-blue-600' : 'text-slate-400'}`}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full transition ${activeSubModule === SubModuleId.LESSON ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}
             >
                 <BookOpen size={24} strokeWidth={activeSubModule === SubModuleId.LESSON ? 2.5 : 2} />
                 <span className="text-[10px] font-bold">Лекција</span>
             </button>
             <button 
                 onClick={() => setActiveSubModule(SubModuleId.EXPLORE)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full transition ${activeSubModule === SubModuleId.EXPLORE ? 'text-blue-600' : 'text-slate-400'}`}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full transition ${activeSubModule === SubModuleId.EXPLORE ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}
             >
                 <Compass size={24} strokeWidth={activeSubModule === SubModuleId.EXPLORE ? 2.5 : 2} />
                 <span className="text-[10px] font-bold">Истражувај</span>
             </button>
             <button 
                 onClick={() => setActiveSubModule(SubModuleId.TEST)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full transition ${activeSubModule === SubModuleId.TEST ? 'text-blue-600' : 'text-slate-400'}`}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg w-full transition ${activeSubModule === SubModuleId.TEST ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}
             >
                 <CheckSquare size={24} strokeWidth={activeSubModule === SubModuleId.TEST ? 2.5 : 2} />
-                <span className="text-[10px] font-bold">Тестирај се</span>
+                <span className="text-[10px] font-bold">Тест</span>
             </button>
        </div>
 
