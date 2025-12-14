@@ -1,3 +1,4 @@
+
 export enum ModuleId {
   TYPES = 'TYPES',
   INTERNAL_ANGLES = 'INTERNAL_ANGLES',
@@ -68,6 +69,7 @@ export interface ModuleData {
   id: ModuleId;
   title: string;
   description: string;
+  goals: string[]; // NEW: List of learning objectives
   icon: string;
   color: string;
   lessonRoot: LessonNode;

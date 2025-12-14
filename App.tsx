@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { ModuleData, ModuleId, SubModuleId } from './types';
 import { MODULES } from './constants';
@@ -19,7 +20,7 @@ const App: React.FC = () => {
     switch (activeSubModule) {
       case SubModuleId.LESSON:
         // LessonView already has internal scrolling (h-full overflow-y-auto)
-        return <LessonView rootNode={activeModule.lessonRoot} />;
+        return <LessonView rootNode={activeModule.lessonRoot} objectives={activeModule.goals} />;
       case SubModuleId.EXPLORE:
         return (
           <div className="h-full overflow-y-auto">

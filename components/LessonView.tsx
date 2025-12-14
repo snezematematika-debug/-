@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { LessonNode } from '../types';
-import { ChevronRight, ChevronDown, Circle, ChevronUp, Maximize2, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, Circle, ChevronUp, Maximize2, X, Target } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -65,7 +66,7 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
   },
   obtuse: {
     viewBox: "0 0 100 100",
-    path: "M 25 80 L 90 80 L 5 30 Z", // Corrected Obtuse (Angle at bottom-left > 90)
+    path: "M 25 80 L 90 80 L 5 30 Z", // Corrected Obtuse (Angle > 90)
     decor: (
        <path d="M 40 80 A 15 15 0 0 0 20 66" fill="none" stroke="#0ea5e9" strokeWidth="1.5" strokeDasharray="2" strokeLinecap="round" strokeLinejoin="round" />
     )
@@ -385,7 +386,7 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
 
         {/* Text Content */}
         {!showInternalSum && !showExternalSupp && !showExternalSum && !showExternalTheorem && !showIntroDef && (
-            <div className={`text-slate-600 ${isLarge ? 'prose prose-lg max-w-none text-center px-4' : 'text-sm prose prose-sm prose-p:my-1'}`}>
+            <div className={`text-slate-600 ${isLarge ? 'prose prose-xl max-w-none text-center px-4' : 'text-base prose prose-stone prose-p:my-2 leading-relaxed'}`}>
                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {node.content}
                 </ReactMarkdown>
@@ -394,7 +395,7 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
         
         {/* Helper text for animated nodes - Only for specific nodes */}
         {(showExternalSum || showExternalTheorem) && (
-             <div className={`text-slate-500 mt-2 italic ${isLarge ? 'text-base text-center' : 'text-xs'}`}>
+             <div className={`text-slate-500 mt-2 italic ${isLarge ? 'text-xl text-center' : 'text-sm'}`}>
                  <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {node.content}
                  </ReactMarkdown>
@@ -412,9 +413,9 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
                <div className="relative w-full max-w-4xl max-h-full bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
                    {/* Header */}
                    <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-100 bg-slate-50">
-                        <h2 className="text-2xl font-bold text-slate-800">{node.title}</h2>
+                        <h2 className="text-3xl font-bold text-slate-800">{node.title}</h2>
                         <button onClick={toggleExpand} className="p-2 hover:bg-red-100 text-slate-400 hover:text-red-500 rounded-full transition">
-                            <X size={28} />
+                            <X size={32} />
                         </button>
                    </div>
                    {/* Body */}
@@ -430,9 +431,9 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
       <div 
         onClick={toggle}
         className={`
-            relative z-10 flex flex-col items-center text-center p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer group
+            relative z-10 flex flex-col items-center text-center p-5 rounded-xl border-2 transition-all duration-300 cursor-pointer group
             ${isOpen ? 'bg-white border-blue-400 shadow-lg ring-2 ring-blue-50' : 'bg-white border-slate-200 hover:border-blue-300 shadow-sm'}
-            ${depth === 0 ? 'min-w-[300px] border-blue-600 bg-blue-50' : 'min-w-[260px] max-w-xs'}
+            ${depth === 0 ? 'min-w-[350px] border-blue-600 bg-blue-50' : 'min-w-[300px] max-w-sm'}
         `}
       >
         <button 
@@ -440,16 +441,16 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
              className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all z-20 opacity-0 group-hover:opacity-100 focus:opacity-100"
              title="Зголеми"
         >
-             <Maximize2 size={16} />
+             <Maximize2 size={20} />
         </button>
 
-        <h4 className={`font-bold text-slate-800 mb-2 ${depth === 0 ? 'text-xl' : 'text-lg'}`}>{node.title}</h4>
+        <h4 className={`font-bold text-slate-800 mb-3 ${depth === 0 ? 'text-2xl' : 'text-xl'}`}>{node.title}</h4>
         
         {renderContentBody(false)}
         
         {hasChildren && (
             <div className={`mt-3 p-1 rounded-full ${isOpen ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
-                {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                {isOpen ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
             </div>
         )}
       </div>
@@ -463,7 +464,7 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
 
           {isVerticalStack ? (
               // VERTICAL STACK (For Level 0 children)
-              <div className="flex flex-col gap-8 w-full items-center relative">
+              <div className="flex flex-col gap-10 w-full items-center relative">
                   {/* Vertical line spanning the height */}
                   <div className="absolute top-0 bottom-0 left-1/2 w-0.5 bg-slate-200 -z-10 hidden"></div>
                   
@@ -476,7 +477,7 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
               </div>
           ) : (
               // HORIZONTAL/GRID STACK (For Level 1+ children)
-              <div className="flex flex-wrap justify-center gap-6 pt-2 relative">
+              <div className="flex flex-wrap justify-center gap-8 pt-2 relative">
                  {/* Horizontal Connector Bar */}
                  {node.children!.length > 1 && (
                      <div className="absolute top-0 h-0.5 bg-slate-300 left-10 right-10"></div>
@@ -497,12 +498,35 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
   );
 };
 
-const LessonView: React.FC<{ rootNode: LessonNode }> = ({ rootNode }) => {
+const LessonView: React.FC<{ rootNode: LessonNode; objectives?: string[] }> = ({ rootNode, objectives }) => {
   return (
     <div className="w-full h-full p-4 md:p-8 bg-slate-50 overflow-y-auto">
+      {/* Learning Objectives Card */}
+      {objectives && objectives.length > 0 && (
+         <div className="max-w-4xl mx-auto mb-10 bg-white border border-indigo-100 rounded-xl shadow-sm p-6 relative overflow-hidden">
+             <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+             <div className="flex items-start gap-4">
+                 <div className="p-3 bg-indigo-50 text-indigo-600 rounded-full shrink-0">
+                     <Target size={28} />
+                 </div>
+                 <div>
+                     <h3 className="text-xl font-bold text-slate-800 mb-3">Цели на часот</h3>
+                     <ul className="space-y-3">
+                         {objectives.map((goal, idx) => (
+                             <li key={idx} className="flex items-start gap-3 text-slate-700 text-base">
+                                 <span className="mt-2 w-2 h-2 rounded-full bg-indigo-400 shrink-0"></span>
+                                 <span>{goal}</span>
+                             </li>
+                         ))}
+                     </ul>
+                 </div>
+             </div>
+         </div>
+      )}
+
       <div className="flex justify-center mb-6">
-        <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-2 shadow-sm border border-blue-200">
-            <Circle size={10} className="animate-pulse fill-blue-500"/> 
+        <span className="bg-blue-100 text-blue-800 text-sm font-semibold px-4 py-1.5 rounded-full flex items-center gap-2 shadow-sm border border-blue-200">
+            <Circle size={12} className="animate-pulse fill-blue-500"/> 
             Интерактивна мапа - Кликни на картичките за повеќе инфо
         </span>
       </div>
