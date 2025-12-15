@@ -240,9 +240,17 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
     path: "M 50 15 L 90 85 L 10 85 Z",
     decor: (
       <g>
-         {/* Incircle touching sides */}
-         <circle cx="50" cy="58" r="20" fill="none" stroke="#f97316" strokeWidth="3" />
-         <circle cx="50" cy="58" r="3" fill="#f97316" />
+         {/* Precise Incircle: Center(50, 61.8), Radius 23.2 */}
+         <circle cx="50" cy="61.8" r="23.2" fill="none" stroke="#f97316" strokeWidth="2.5" />
+         <circle cx="50" cy="61.8" r="3" fill="#f97316" />
+         <text x="50" y="55" textAnchor="middle" className="text-[10px] font-extrabold fill-orange-800">V</text>
+         
+         {/* Radius to bottom side */}
+         <line x1="50" y1="61.8" x2="50" y2="85" stroke="#f97316" strokeWidth="1.5" />
+         <text x="55" y="75" className="text-[10px] font-bold fill-orange-800">r</text>
+         
+         {/* Right Angle Marker */}
+         <path d="M 50 80 L 55 80 L 55 85" fill="none" stroke="#f97316" strokeWidth="1.5" />
       </g>
     )
   },
@@ -271,7 +279,15 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
     decor: (
       <g>
          {/* Highlight circle inside */}
-         <circle cx="50" cy="58" r="20" fill="rgba(249, 115, 22, 0.3)" stroke="#f97316" strokeWidth="3" />
+         <circle cx="50" cy="61.8" r="23.2" fill="rgba(249, 115, 22, 0.2)" stroke="#f97316" strokeWidth="2.5" />
+         <circle cx="50" cy="61.8" r="3" fill="#f97316" />
+         
+         {/* Radius to bottom side */}
+         <line x1="50" y1="61.8" x2="50" y2="85" stroke="#f97316" strokeWidth="1.5" />
+         <text x="55" y="75" className="text-[10px] font-bold fill-orange-800">r</text>
+         
+         {/* Right Angle Marker */}
+         <path d="M 50 80 L 55 80 L 55 85" fill="none" stroke="#f97316" strokeWidth="1.5" />
       </g>
     )
   },

@@ -334,7 +334,7 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
     if (moduleId === ModuleId.CENTROID && drawnMedians[v]) return;
     if (moduleId === ModuleId.ORTHOCENTER && drawnAltitudes[v]) return;
     if (moduleId === ModuleId.INCIRCLE) {
-        if (!drawnAngleBisectors[v]) setDrawnAngleBisectors(prev => ({...prev, [v]: true}));
+        setDrawnAngleBisectors(prev => ({...prev, [v]: !prev[v]}));
         return;
     }
     if (moduleId === ModuleId.CIRCUMCIRCLE) return;
@@ -708,8 +708,48 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
             {/* Incircle */}
             {moduleId === ModuleId.INCIRCLE && (
                 <g>
+                     {/* 1. Render Angle Bisector Lines */}
+                     {drawnAngleBisectors.A && <line x1={points.A.x} y1={points.A.y} x2={bisectFootA.x} y2={bisectFootA.y} stroke="#f97316" strokeWidth="2" strokeDasharray="5,5" />}
+                     {drawnAngleBisectors.B && <line x1={points.B.x} y1={points.B.y} x2={bisectFootB.x} y2={bisectFootB.y} stroke="#f97316" strokeWidth="2" strokeDasharray="5,5" />}
+                     {drawnAngleBisectors.C && <line x1={points.C.x} y1={points.C.y} x2={bisectFootC.x} y2={bisectFootC.y} stroke="#f97316" strokeWidth="2" strokeDasharray="5,5" />}
+
+                     {/* 2. Render Interactive Angle Arcs */}
+                     {tool === 'DRAW' && (
+                        <g>
+                            {/* Arc A */}
+                            <path 
+                                d={getSector(points.A, points.B, points.C, 50)} 
+                                fill={drawnAngleBisectors.A ? "rgba(249, 115, 22, 0.4)" : "rgba(249, 115, 22, 0.1)"}
+                                stroke="#f97316" strokeWidth={drawnAngleBisectors.A ? 3 : 1}
+                                className="cursor-pointer hover:fill-orange-200 transition-all"
+                                onClick={(e) => { e.stopPropagation(); setDrawnAngleBisectors(p => ({...p, A: !p.A})); }}
+                            />
+                            {/* Arc B */}
+                            <path 
+                                d={getSector(points.B, points.C, points.A, 50)} 
+                                fill={drawnAngleBisectors.B ? "rgba(249, 115, 22, 0.4)" : "rgba(249, 115, 22, 0.1)"}
+                                stroke="#f97316" strokeWidth={drawnAngleBisectors.B ? 3 : 1}
+                                className="cursor-pointer hover:fill-orange-200 transition-all"
+                                onClick={(e) => { e.stopPropagation(); setDrawnAngleBisectors(p => ({...p, B: !p.B})); }}
+                            />
+                            {/* Arc C */}
+                            <path 
+                                d={getSector(points.C, points.A, points.B, 50)} 
+                                fill={drawnAngleBisectors.C ? "rgba(249, 115, 22, 0.4)" : "rgba(249, 115, 22, 0.1)"}
+                                stroke="#f97316" strokeWidth={drawnAngleBisectors.C ? 3 : 1}
+                                className="cursor-pointer hover:fill-orange-200 transition-all"
+                                onClick={(e) => { e.stopPropagation(); setDrawnAngleBisectors(p => ({...p, C: !p.C})); }}
+                            />
+                        </g>
+                     )}
+
+                     {/* 3. Incircle + Center V (Only when all 3 are drawn) */}
                      {drawnAngleBisectors.A && drawnAngleBisectors.B && drawnAngleBisectors.C && (
-                        <circle cx={incenter.x} cy={incenter.y} r={inradius} fill="rgba(249, 115, 22, 0.1)" stroke="#f97316" strokeWidth="3" />
+                        <g className="animate-fade-in">
+                            <circle cx={incenter.x} cy={incenter.y} r={inradius} fill="rgba(249, 115, 22, 0.05)" stroke="#f97316" strokeWidth="2" />
+                            <circle cx={incenter.x} cy={incenter.y} r="10" fill="black" stroke="white" strokeWidth="2" />
+                            <text x={incenter.x} y={incenter.y} dy=".3em" textAnchor="middle" className="text-[10px] font-bold fill-white">V</text>
+                        </g>
                     )}
                 </g>
             )}
