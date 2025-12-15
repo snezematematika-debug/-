@@ -311,6 +311,13 @@ const SIDE_ANGLE_RELATION_LESSON: LessonNode = {
   ]
 };
 
+const FINAL_REVIEW_LESSON: LessonNode = {
+  id: 'final_root',
+  title: 'Завршна проверка',
+  content: 'Честитки! Ги помина сите лекции за триаголници. Сега е време да го тестираш своето знаење преку овој сеопфатен тест кој ги вклучува сите научени концепти.',
+  children: []
+};
+
 const TYPES_QUIZ: QuizQuestion[] = [
   {
     id: 'drag_sides',
@@ -789,6 +796,116 @@ export const MODULES: ModuleData[] = [
         options: ['α (наспроти a)', 'β (наспроти b)', 'γ (наспроти c)'],
         correctIndex: 0,
         explanation: 'Најкратката страна е a=5, па најмалиот агол е оној наспроти неа (α).'
+      }
+    ]
+  },
+  {
+    id: ModuleId.FINAL_QUIZ,
+    title: 'ПРОВЕРИ ГО СВОЕТО ЗНАЕЊЕ',
+    description: 'Завршен предизвик: Сите лекции во еден голем квиз! Дали си подготвен да станеш мајстор за триаголници?',
+    goals: [
+        'Да ги повториш сите научени концепти.',
+        'Да ги тестираш своите вештини во решавање задачи од различни области.',
+        'Да освоиш значка за „Геометриски Мајстор“!'
+    ],
+    icon: 'award',
+    color: 'bg-gradient-to-r from-violet-600 to-fuchsia-600',
+    lessonRoot: FINAL_REVIEW_LESSON,
+    quiz: [
+       // Q1: Types (Drag Drop)
+       {
+        id: 'fq_types_sort',
+        type: 'DRAG_DROP',
+        question: 'Подреди ги триаголниците во соодветните кутии според должината на страните:',
+        buckets: ['Рамностран', 'Рамнокрак', 'Разностран'],
+        items: [
+          { id: 'f1', content: SVG_EQUILATERAL, category: 'Рамностран' },
+          { id: 'f2', content: SVG_ISOSCELES, category: 'Рамнокрак' },
+          { id: 'f3', content: SVG_SCALENE, category: 'Разностран' },
+          { id: 'f4', content: SVG_EQUILATERAL, category: 'Рамностран' },
+          { id: 'f5', content: SVG_ISOSCELES, category: 'Рамнокрак' }
+        ]
+      },
+      // Q2: Internal Angles (Input)
+      {
+        id: 'fq_internal_calc',
+        type: 'INPUT',
+        question: 'Во триаголник, два агли се 45° и 45°. Колку степени изнесува третиот агол?',
+        correctAnswer: '90',
+        hint: 'Збирот е 180. Третиот агол е 180 - (45 + 45).',
+        explanation: '180° - 90° = 90°. Ова е рамнокрак правоаголен триаголник.'
+      },
+      // Q3: Existence (MCQ)
+      {
+        id: 'fq_existence',
+        type: 'MCQ',
+        question: 'Дали може да се конструира триаголник со страни 4, 5 и 10?',
+        options: ['Да', 'Не', 'Зависи од аглите'],
+        correctIndex: 1,
+        explanation: 'Не, бидејќи 4 + 5 = 9, а 9 е помало од 10. (a + b мора да е поголемо од c).'
+      },
+      // Q4: Middle Line (MCQ Visual)
+      {
+        id: 'fq_midline',
+        type: 'MCQ',
+        question: 'Ако основната страна AB е 20cm, колку е долга средната линија DE која е паралелна со неа?',
+        options: ['20cm', '10cm', '40cm', '15cm'],
+        correctIndex: 1,
+        explanation: 'Средната линија е секогаш половина од паралелната страна. 20 / 2 = 10cm.'
+      },
+      // Q5: External Angles (Input)
+      {
+        id: 'fq_ext_angle',
+        type: 'INPUT',
+        question: 'Надворешниот агол е 150°. Еден несоседен внатрешен агол е 50°. Колку е другиот несоседен внатрешен агол?',
+        correctAnswer: '100',
+        hint: 'Надворешниот агол е збир на двата внатрешни несоседни агли. 150 = 50 + x.',
+        explanation: 'x = 150° - 50° = 100°.'
+      },
+      // Q6: Centroid Ratio (MCQ)
+      {
+        id: 'fq_centroid',
+        type: 'MCQ',
+        question: 'Во кој однос тежиштето ја дели тежишната линија (гледано од темето)?',
+        options: ['1:1', '1:2', '2:1', '3:1'],
+        correctIndex: 2,
+        explanation: 'Правилото гласи 2:1. Поголемиот дел е од темето до тежиштето.'
+      },
+      // Q7: Points Identification (MCQ)
+      {
+        id: 'fq_ortho_def',
+        type: 'MCQ',
+        question: 'Која значајна точка се добива во пресекот на висините?',
+        options: ['Ортоцентар', 'Тежиште', 'Центар на впишана кружница', 'Центар на опишана кружница'],
+        correctIndex: 0,
+        explanation: 'Висините се сечат во Ортоцентар.'
+      },
+      // Q8: Side-Angle Relation (MCQ)
+      {
+        id: 'fq_relation',
+        type: 'MCQ',
+        question: 'Ако страните се a=7, b=9, c=5, кој агол е најголем?',
+        options: ['α (алфа)', 'β (бета)', 'γ (гама)'],
+        correctIndex: 1,
+        explanation: 'Најголемиот агол лежи наспроти најдолгата страна. b=9 е најдолга, значи β е најголем.'
+      },
+      // Q9: Incircle (Input) - Conceptual check via multiple choice actually fits better, but let's try input for simple concept
+      {
+        id: 'fq_incircle_pos',
+        type: 'MCQ',
+        question: 'Каде се наоѓа центарот на впишаната кружница кај тапоаголен триаголник?',
+        options: ['Внатре', 'Надвор', 'На најдолгата страна'],
+        correctIndex: 0,
+        explanation: 'Впишаната кружница е секогаш внатре, без разлика на видот на триаголникот.'
+      },
+      // Q10: Circumcircle (Visual/Logic)
+      {
+        id: 'fq_circum_right',
+        type: 'MCQ',
+        question: 'Каде се наоѓа центарот на опишана кружница кај правоаголен триаголник?',
+        options: ['Во темето на правиот агол', 'На средината на хипотенузата', 'Во внатрешноста'],
+        correctIndex: 1,
+        explanation: 'Кај правоаголен триаголник, центарот на опишаната кружница е точно на средината на хипотенузата.'
       }
     ]
   }

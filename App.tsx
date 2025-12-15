@@ -13,6 +13,17 @@ const App: React.FC = () => {
   const [activeSubModule, setActiveSubModule] = useState<SubModuleId>(SubModuleId.LESSON);
 
   const activeModule = MODULES.find(m => m.id === activeModuleId);
+  const isFinalQuiz = activeModuleId === ModuleId.FINAL_QUIZ;
+
+  const handleModuleSelect = (id: ModuleId) => {
+      setActiveModuleId(id);
+      // For Final Quiz, immediately jump to Test mode
+      if (id === ModuleId.FINAL_QUIZ) {
+          setActiveSubModule(SubModuleId.TEST);
+      } else {
+          setActiveSubModule(SubModuleId.LESSON);
+      }
+  };
 
   const renderContent = () => {
     if (!activeModule) return null;
@@ -30,9 +41,9 @@ const App: React.FC = () => {
         );
       case SubModuleId.TEST:
         return (
-          <div className="h-full overflow-y-auto bg-slate-50/50">
-            <div className="p-6 md:p-10 pb-32 min-h-min">
-              <QuizView questions={activeModule.quiz} />
+          <div className={`h-full overflow-y-auto bg-slate-50/50 ${isFinalQuiz ? 'flex items-center justify-center p-4' : ''}`}>
+            <div className={`${isFinalQuiz ? 'w-full' : 'p-6 md:p-10 pb-32 min-h-min'}`}>
+              <QuizView questions={activeModule.quiz} isCompact={isFinalQuiz} />
             </div>
           </div>
         );
@@ -42,7 +53,7 @@ const App: React.FC = () => {
   };
 
   if (!activeModuleId) {
-    // DASHBOARD VIEW (Unchanged Logic, just ensuring structure is clean)
+    // DASHBOARD VIEW
     return (
       <div className="min-h-screen bg-slate-50 font-sans">
         {/* HERO SECTION */}
@@ -106,8 +117,8 @@ const App: React.FC = () => {
                 {MODULES.map((module) => (
                     <div 
                         key={module.id}
-                        onClick={() => setActiveModuleId(module.id)}
-                        className="group bg-white rounded-3xl shadow-sm border border-slate-200 hover:shadow-2xl hover:border-blue-400/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col relative h-[340px]"
+                        onClick={() => handleModuleSelect(module.id)}
+                        className={`group bg-white rounded-3xl shadow-sm border border-slate-200 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden flex flex-col relative h-[340px] ${module.id === ModuleId.FINAL_QUIZ ? 'ring-4 ring-indigo-100 border-indigo-200' : ''}`}
                     >
                         <div className={`h-2 absolute top-0 left-0 right-0 ${module.color}`}></div>
 
@@ -122,7 +133,7 @@ const App: React.FC = () => {
                            </div>
                            
                            <div className={`p-4 rounded-2xl bg-white shadow-sm group-hover:scale-110 transition-transform duration-500 ${module.color.replace('bg-', 'text-')}`}>
-                                <GraduationCap size={48} />
+                                {module.id === ModuleId.FINAL_QUIZ ? <Star size={48} className="text-yellow-500 fill-yellow-500" /> : <GraduationCap size={48} />}
                            </div>
                         </div>
 
@@ -131,7 +142,7 @@ const App: React.FC = () => {
                             <p className="text-slate-500 text-base leading-relaxed mb-6 line-clamp-2">{module.description}</p>
                             
                             <div className="mt-auto flex items-center justify-between">
-                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Лекција &bull; Квиз</span>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{module.id === ModuleId.FINAL_QUIZ ? 'Завршен тест' : 'Лекција • Квиз'}</span>
                                 <span className={`w-10 h-10 rounded-full flex items-center justify-center ${module.color} text-white group-hover:scale-110 transition-transform shadow-md`}>
                                     <ChevronLeft className="rotate-180" size={20}/>
                                 </span>
@@ -154,7 +165,7 @@ const App: React.FC = () => {
   return (
     <div className="h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
        {/* Top Header - Matches the Gradient Theme */}
-       <header className="bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 shadow-md px-4 py-3 shrink-0 flex items-center justify-between z-20">
+       <header className={`${isFinalQuiz ? 'bg-slate-900' : 'bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700'} shadow-md px-4 py-3 shrink-0 flex items-center justify-between z-20`}>
           <div className="flex items-center gap-4">
              <button 
                 onClick={() => { setActiveModuleId(null); setActiveSubModule(SubModuleId.LESSON); }}
@@ -164,14 +175,15 @@ const App: React.FC = () => {
                 <ChevronLeft size={24} />
              </button>
              <div className="flex flex-col">
-                 <span className="text-blue-200 text-xs font-bold uppercase tracking-wider">Модул</span>
+                 <span className={`${isFinalQuiz ? 'text-indigo-300' : 'text-blue-200'} text-xs font-bold uppercase tracking-wider`}>Модул</span>
                  <h1 className="text-lg font-bold text-white leading-tight truncate">{activeModule.title}</h1>
              </div>
           </div>
        </header>
 
        <div className="flex-1 flex overflow-hidden relative">
-          {/* Desktop Sidebar - Modern Gradient Look */}
+          {/* Desktop Sidebar - Hidden for Final Quiz */}
+          {!isFinalQuiz && (
           <aside className="hidden md:flex w-72 bg-white border-r border-slate-200 flex-col shrink-0 z-10">
               <div className="p-6 space-y-3">
                   <p className="px-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Навигација</p>
@@ -220,6 +232,7 @@ const App: React.FC = () => {
                  </div>
               </div>
           </aside>
+          )}
 
           {/* Main Content Area */}
           <main className="flex-1 relative overflow-hidden bg-slate-50/50">
@@ -227,7 +240,8 @@ const App: React.FC = () => {
           </main>
        </div>
 
-       {/* Mobile Bottom Navigation - Updated with shadows and larger active states */}
+       {/* Mobile Bottom Navigation - Hidden for Final Quiz */}
+       {!isFinalQuiz && (
        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-2 flex justify-between items-center z-30 pb-safe shadow-[0_-8px_30px_rgba(0,0,0,0.05)] rounded-t-3xl">
             <button 
                 onClick={() => setActiveSubModule(SubModuleId.LESSON)}
@@ -251,6 +265,7 @@ const App: React.FC = () => {
                 <span className="text-[10px] font-bold">Тест</span>
             </button>
        </div>
+       )}
 
        <AITutor context={`Корисникот учи за ${activeModule.title}, моментално во секцијата: ${activeSubModule}`} />
     </div>

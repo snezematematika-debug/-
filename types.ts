@@ -10,6 +10,7 @@ export enum ModuleId {
   INCIRCLE = 'INCIRCLE',
   EXISTENCE = 'EXISTENCE',
   SIDE_ANGLE_RELATION = 'SIDE_ANGLE_RELATION',
+  FINAL_QUIZ = 'FINAL_QUIZ',
 }
 
 export enum SubModuleId {
