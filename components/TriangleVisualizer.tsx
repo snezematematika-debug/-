@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Point, ModuleId } from '../types';
-import { Maximize2, Minimize2, X, RotateCcw, PenTool, Move, Hand, Lock } from 'lucide-react';
+import { Maximize2, Minimize2, X, RotateCcw, PenTool, Move, Hand, Lock, ArrowRight } from 'lucide-react';
 
 interface Props {
   moduleId: ModuleId;
@@ -178,6 +178,13 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
   // Rounded to integers for cleaner display in the 2:1 ratio window
   const valAT = Math.round(dist(points.A, centroid) / 30);
   const valTA1 = Math.round(dist(centroid, midBC) / 30);
+
+  // Existence Values (Real numbers for display)
+  const valExistA = Number((armRightLen / 30).toFixed(1));
+  const valExistB = Number((armLeftLen / 30).toFixed(1));
+  const valExistC = Number((baseLen / 30).toFixed(1));
+  const valExistDiff = Math.abs(valExistA - valExistB);
+  const valExistSum = valExistA + valExistB;
 
   const isEquilateral = sideA > 0 && Math.abs(sideA - sideB) < 5 && Math.abs(sideB - sideC) < 5;
   const isIsosceles = !isEquilateral && (Math.abs(sideA - sideB) < 5 || Math.abs(sideB - sideC) < 5 || Math.abs(sideA - sideC) < 5);
@@ -379,10 +386,12 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
         if (dragging === 'ARM_LEFT') {
             const dx = x - existBaseA.x; const dy = y - existBaseA.y;
             setArmLeftAngle(Math.atan2(dy, dx) * 180 / Math.PI);
+            setArmLeftLen(Math.min(180, Math.max(40, Math.sqrt(dx*dx + dy*dy))));
         }
         if (dragging === 'ARM_RIGHT') {
             const dx = x - existBaseB.x; const dy = y - existBaseB.y;
             setArmRightAngle(Math.atan2(dy, dx) * 180 / Math.PI);
+            setArmRightLen(Math.min(180, Math.max(40, Math.sqrt(dx*dx + dy*dy))));
         }
     }
   };
@@ -402,8 +411,16 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
          if(dragging === 'A'||dragging==='B'||dragging==='C') setPoints(p => ({...p, [dragging]: {x: cx, y: cy}}));
       }
       if (moduleId === ModuleId.EXISTENCE) {
-         if(dragging==='ARM_LEFT') setArmLeftAngle(Math.atan2(y-existBaseA.y, x-existBaseA.x)*180/Math.PI);
-         if(dragging==='ARM_RIGHT') setArmRightAngle(Math.atan2(y-existBaseB.y, x-existBaseB.x)*180/Math.PI);
+         if(dragging==='ARM_LEFT') {
+             const dx = x - existBaseA.x; const dy = y - existBaseA.y;
+             setArmLeftAngle(Math.atan2(dy, dx)*180/Math.PI);
+             setArmLeftLen(Math.min(180, Math.max(40, Math.sqrt(dx*dx + dy*dy))));
+         }
+         if(dragging==='ARM_RIGHT') {
+             const dx = x - existBaseB.x; const dy = y - existBaseB.y;
+             setArmRightAngle(Math.atan2(dy, dx)*180/Math.PI);
+             setArmRightLen(Math.min(180, Math.max(40, Math.sqrt(dx*dx + dy*dy))));
+         }
       }
   };
 
@@ -864,6 +881,109 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
                   <span>=</span>
                   <span className="text-yellow-300">2 : 1</span>
                </div>
+            </div>
+        )}
+
+        {/* Dynamic Window for Existence */}
+        {moduleId === ModuleId.EXISTENCE && (
+            <div className="bg-teal-600 text-white p-4 rounded-2xl shadow-lg border-2 border-teal-400/30 flex flex-col items-center justify-center gap-3 animate-fade-in">
+                <div className="text-teal-100 text-xs font-bold uppercase tracking-widest mb-1">Неравенство на триаголник</div>
+                <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-lg md:text-xl font-black font-mono">
+                    {/* |a - b| < c */}
+                    <div className="flex items-center gap-1">
+                        <span className={`${valExistDiff < valExistC ? 'text-teal-200' : 'text-red-300'}`}>
+                            |{valExistA} - {valExistB}|
+                        </span>
+                        <span className="text-teal-300">&lt;</span>
+                        <span className="text-white border-b-2 border-white/30 px-1">{valExistC}</span>
+                        <span className="text-teal-300">&lt;</span>
+                        {/* c < a + b */}
+                        <span className={`${valExistSum > valExistC ? 'text-teal-200' : 'text-red-300'}`}>
+                            {valExistA} + {valExistB}
+                        </span>
+                    </div>
+                </div>
+                
+                {/* Calculated Result Line */}
+                <div className="flex items-center gap-3 text-sm md:text-base font-bold font-mono text-teal-100 bg-teal-800/30 px-4 py-2 rounded-xl">
+                     <span className={valExistDiff < valExistC ? "text-green-300" : "text-red-300"}>{valExistDiff.toFixed(1)}</span>
+                     <span>&lt;</span>
+                     <span className="text-white font-black">{valExistC}</span>
+                     <span>&lt;</span>
+                     <span className={valExistSum > valExistC ? "text-green-300" : "text-red-300"}>{valExistSum.toFixed(1)}</span>
+                </div>
+
+                {!canFormTriangle && (
+                    <div className="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-bold animate-pulse shadow-md mt-1">
+                        ⚠️ Не може да се формира триаголник!
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* Dynamic Window for Side Angle Relation */}
+        {moduleId === ModuleId.SIDE_ANGLE_RELATION && (
+            <div className="bg-slate-800 text-white p-5 rounded-2xl shadow-lg border-2 border-slate-700 flex flex-col gap-3 animate-fade-in w-full">
+                <div className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1 border-b border-slate-700 pb-2">
+                    Врска: Страни vs Агли
+                </div>
+                {(() => {
+                    // Prepare data sorted by size for display
+                    const data = [
+                        { label: 'a (BC)', angleName: 'α', valSide: sideA, valAngle: angleA, color: getColor(0), idx: 0 },
+                        { label: 'b (AC)', angleName: 'β', valSide: sideB, valAngle: angleB, color: getColor(1), idx: 1 },
+                        { label: 'c (AB)', angleName: 'γ', valSide: sideC, valAngle: angleC, color: getColor(2), idx: 2 }
+                    ].sort((a, b) => b.valSide - a.valSide);
+
+                    const max = data[0];
+                    const min = data[2];
+
+                    return (
+                        <>
+                            {/* Largest Row */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-red-900/40 to-slate-800 border border-red-500/30">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-red-400 uppercase">Најдолга страна</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xl font-black text-white">{max.label}</span>
+                                        <span className="text-sm font-mono text-slate-400 opacity-80">{displayLen(max.valSide)}</span>
+                                    </div>
+                                </div>
+                                <div className="text-red-500 animate-pulse">
+                                    <ArrowRight size={24} strokeWidth={3} />
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-bold text-red-400 uppercase">Најголем агол</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-sm font-mono text-slate-400 opacity-80">{Math.round(max.valAngle)}°</span>
+                                        <span className="text-xl font-black text-white">{max.angleName}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Smallest Row */}
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-900/40 to-slate-800 border border-blue-500/30">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-blue-400 uppercase">Најкратка страна</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xl font-black text-white">{min.label}</span>
+                                        <span className="text-sm font-mono text-slate-400 opacity-80">{displayLen(min.valSide)}</span>
+                                    </div>
+                                </div>
+                                <div className="text-blue-500 animate-pulse">
+                                    <ArrowRight size={24} strokeWidth={3} />
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[10px] font-bold text-blue-400 uppercase">Најмал агол</span>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-sm font-mono text-slate-400 opacity-80">{Math.round(min.valAngle)}°</span>
+                                        <span className="text-xl font-black text-white">{min.angleName}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    );
+                })()}
             </div>
         )}
         
