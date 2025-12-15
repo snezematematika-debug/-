@@ -6,6 +6,7 @@ import TriangleVisualizer from './components/TriangleVisualizer';
 import LessonView from './components/LessonView';
 import QuizView from './components/QuizView';
 import AITutor from './components/AITutor';
+import InternalAnglesAnimation from './components/InternalAnglesAnimation';
 import { BookOpen, Compass, CheckSquare, ChevronLeft, GraduationCap, PlayCircle, Star } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -34,8 +35,10 @@ const App: React.FC = () => {
       case SubModuleId.EXPLORE:
         return (
           <div className="h-full overflow-y-auto bg-slate-50/50">
-            <div className="flex justify-center p-6 md:p-10 pb-32 min-h-min">
+            <div className="flex flex-col items-center p-6 md:p-10 pb-32 min-h-min gap-8">
               <TriangleVisualizer moduleId={activeModule.id} />
+              
+              {/* Removed Visual Proof from here as requested, it is now only in LessonView */}
             </div>
           </div>
         );
@@ -56,8 +59,8 @@ const App: React.FC = () => {
     // DASHBOARD VIEW
     return (
       <div className="min-h-screen bg-slate-50 font-sans">
-        {/* HERO SECTION */}
-        <div className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 text-white overflow-hidden shadow-2xl mb-10">
+        {/* HERO SECTION - COMPACT VERSION */}
+        <div className="relative bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-800 text-white overflow-hidden shadow-xl mb-8">
            {/* Decorative Background Elements */}
            <div className="absolute inset-0 opacity-10 pointer-events-none">
               <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -77,32 +80,32 @@ const App: React.FC = () => {
               </svg>
            </div>
 
-           <div className="max-w-7xl mx-auto px-8 py-16 md:py-20 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+           <div className="max-w-7xl mx-auto px-6 py-10 md:py-14 relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 text-center md:text-left">
-                 <div className="inline-flex items-center gap-2 bg-blue-500/30 border border-blue-400/30 rounded-full px-4 py-1.5 mb-6 backdrop-blur-sm shadow-sm">
-                    <Star size={14} className="text-yellow-300 fill-yellow-300 animate-pulse" />
-                    <span className="text-xs font-bold text-blue-50 uppercase tracking-widest">Интерактивна Геометрија</span>
+                 <div className="inline-flex items-center gap-2 bg-blue-500/30 border border-blue-400/30 rounded-full px-3 py-1 mb-4 backdrop-blur-sm shadow-sm">
+                    <Star size={12} className="text-yellow-300 fill-yellow-300 animate-pulse" />
+                    <span className="text-[10px] font-bold text-blue-50 uppercase tracking-widest">Интерактивна Геометрија</span>
                  </div>
                  
-                 <h1 className="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight drop-shadow-md leading-tight">
+                 <h1 className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight drop-shadow-md leading-tight">
                     Триаголници
                  </h1>
                  
-                 <p className="text-xl text-blue-100 max-w-2xl leading-relaxed mb-8 mx-auto md:mx-0">
+                 <p className="text-lg text-blue-100 max-w-xl leading-relaxed mb-6 mx-auto md:mx-0">
                     Добредојде во дигиталниот свет на формите! Истражувај, учи преку анимации и тестирај го своето знаење на забавен начин.
                  </p>
 
                  <button 
                     onClick={() => document.getElementById('modules-grid')?.scrollIntoView({ behavior: 'smooth' })}
-                    className="bg-white text-blue-700 hover:bg-blue-50 px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center gap-2 mx-auto md:mx-0"
+                    className="bg-white text-blue-700 hover:bg-blue-50 px-6 py-3 rounded-full font-bold text-base shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 flex items-center gap-2 mx-auto md:mx-0"
                  >
-                    <PlayCircle size={24} /> Започни со учење
+                    <PlayCircle size={20} /> Започни со учење
                  </button>
               </div>
               
               <div className="hidden md:block relative">
                   <div className="absolute inset-0 bg-blue-400 blur-3xl opacity-20 rounded-full scale-150"></div>
-                  <GraduationCap size={280} className="text-white drop-shadow-2xl relative z-10 rotate-[-10deg] opacity-90" strokeWidth={1.2} />
+                  <GraduationCap size={180} className="text-white drop-shadow-2xl relative z-10 rotate-[-10deg] opacity-90" strokeWidth={1.2} />
               </div>
            </div>
         </div>

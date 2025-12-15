@@ -72,7 +72,7 @@ const TYPES_LESSON: LessonNode = {
 const ANGLES_LESSON: LessonNode = {
   id: 'root_angles',
   title: 'Внатрешни агли',
-  content: 'Збирот на внатрешните агли во секој триаголник е константен.',
+  content: 'Збирот на внатрешните агли во секој триаголник е 180 степени.',
   children: [
     {
       id: 'sum',

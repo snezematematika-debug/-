@@ -25,6 +25,15 @@ const calculateAngle = (p1: Point, p2: Point, p3: Point): number => {
   return toDeg(Math.acos(clampedCos));
 };
 
+// Helper to get extension point (extends line p1->p2 past p2 by 'len')
+const getExtensionPoint = (p1: Point, p2: Point, len: number) => {
+    const d = dist(p1, p2);
+    if (d === 0) return p2;
+    const ux = (p2.x - p1.x) / d;
+    const uy = (p2.y - p1.y) / d;
+    return { x: p2.x + ux * len, y: p2.y + uy * len };
+};
+
 type ToolMode = 'MOVE' | 'DRAW';
 
 const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
@@ -87,6 +96,16 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
   const angleB = calculateAngle(points.B, points.A, points.C);
   const angleC = calculateAngle(points.C, points.A, points.B);
 
+  // External Angles Calculation
+  const extAngleA = 180 - angleA;
+  const extAngleB = 180 - angleB;
+  const extAngleC = 180 - angleC;
+
+  // Extension Points for External Angles Visuals (Cyclic: C->A->ext, A->B->ext, B->C->ext)
+  const extPointA = getExtensionPoint(points.C, points.A, 80);
+  const extPointB = getExtensionPoint(points.A, points.B, 80);
+  const extPointC = getExtensionPoint(points.B, points.C, 80);
+
   const centroid = { x: (points.A.x + points.B.x + points.C.x) / 3, y: (points.A.y + points.B.y + points.C.y) / 3 };
   const midAB = { x: (points.A.x + points.B.x) / 2, y: (points.A.y + points.B.y) / 2 };
   const midBC = { x: (points.B.x + points.C.x) / 2, y: (points.B.y + points.C.y) / 2 };
@@ -95,6 +114,7 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
   const getAltitudeFoot = (p: Point, a: Point, b: Point) => {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
+    // Calculate vector t parameter for projection
     const t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy);
     return { x: a.x + t * dx, y: a.y + t * dy, t: t };
   };
@@ -147,13 +167,38 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
   const bisectFootB = getBisectorFoot(points.B, points.A, points.C, sideA, sideC);
   const bisectFootC = getBisectorFoot(points.C, points.A, points.B, sideA, sideB);
 
-  const distMidLine = dist(midAC, midBC);
-  const displayLen = (px: number) => (px / 30).toFixed(1);
+  // Updated: Uses decimal comma instead of dot
+  const displayLen = (px: number) => (px / 30).toFixed(1).replace('.', ',');
+
+  // Special lengths for Middle Line module
+  const valAB = displayLen(sideC);
+  const valMN = displayLen(dist(midAC, midBC));
+
+  // Special lengths for Centroid module
+  // Rounded to integers for cleaner display in the 2:1 ratio window
+  const valAT = Math.round(dist(points.A, centroid) / 30);
+  const valTA1 = Math.round(dist(centroid, midBC) / 30);
 
   const isEquilateral = sideA > 0 && Math.abs(sideA - sideB) < 5 && Math.abs(sideB - sideC) < 5;
   const isIsosceles = !isEquilateral && (Math.abs(sideA - sideB) < 5 || Math.abs(sideB - sideC) < 5 || Math.abs(sideA - sideC) < 5);
   const isRight = Math.abs(angleA - 90) < 2 || Math.abs(angleB - 90) < 2 || Math.abs(angleC - 90) < 2;
   const isObtuse = angleA > 92 || angleB > 92 || angleC > 92;
+
+  // Function to calculate label position inside the triangle
+  const getLabelPos = (p: Point) => {
+    const textOffset = 40; // Pixels to move towards centroid
+    const dir = { x: centroid.x - p.x, y: centroid.y - p.y };
+    const len = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
+    // Move slightly towards centroid
+    return { 
+        x: p.x + (dir.x / len) * textOffset, 
+        y: p.y + (dir.y / len) * textOffset 
+    };
+  };
+
+  const labelPosA = getLabelPos(points.A);
+  const labelPosB = getLabelPos(points.B);
+  const labelPosC = getLabelPos(points.C);
 
   // Existence Logic
   const existBaseA = { x: 80, y: 300 };
@@ -194,8 +239,91 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
       const x2 = center.x + (p2.x - center.x) * (r / d2);
       const y2 = center.y + (p2.y - center.y) * (r / d2);
       const cp = (p1.x - center.x)*(p2.y - center.y) - (p1.y - center.y)*(p2.x - center.x);
+      // For internal angles, we usually want the smaller sweep, but for external logic, order matters
+      // Standard sector logic checks cross product.
       const sweep = cp > 0 ? 1 : 0;
       return `M ${center.x} ${center.y} L ${x1} ${y1} A ${r} ${r} 0 0 ${sweep} ${x2} ${y2} Z`;
+  };
+
+  // Improved calculation to place external angle labels exactly in the center of the sector
+  const getExternalLabelPos = (vertex: Point, p1: Point, p2: Point) => {
+    const distOffset = 28; // Distance from vertex, slightly less than sector radius (40)
+    
+    // Vectors from vertex to endpoints
+    const vx1 = p1.x - vertex.x;
+    const vy1 = p1.y - vertex.y;
+    const len1 = Math.sqrt(vx1*vx1 + vy1*vy1);
+    
+    const vx2 = p2.x - vertex.x;
+    const vy2 = p2.y - vertex.y;
+    const len2 = Math.sqrt(vx2*vx2 + vy2*vy2);
+    
+    // Normalized vectors (unit vectors)
+    const nx1 = vx1 / len1;
+    const ny1 = vy1 / len1;
+    const nx2 = vx2 / len2;
+    const ny2 = vy2 / len2;
+    
+    // Bisector vector (sum of unit vectors gives the direction of the bisector)
+    const bx = nx1 + nx2;
+    const by = ny1 + ny2;
+    const blen = Math.sqrt(bx*bx + by*by);
+    
+    if (blen === 0) return { x: vertex.x, y: vertex.y }; // Should not happen in valid triangle
+
+    // Normalize bisector and scale to distance
+    return { 
+        x: vertex.x + (bx/blen) * distOffset, 
+        y: vertex.y + (by/blen) * distOffset 
+    };
+  }
+
+  // Helper to draw right angle marker at a point `foot` perpendicular to `baseStart`->`baseEnd` pointing towards `vertex`
+  const getRightAnglePath = (foot: Point, ver: Point, baseStart: Point, baseEnd: Point) => {
+    // Vector along altitude (Foot -> Vertex)
+    const dvx = ver.x - foot.x;
+    const dvy = ver.y - foot.y;
+    const lenV = Math.sqrt(dvx*dvx + dvy*dvy);
+    if (lenV < 1) return "";
+    const uVx = dvx / lenV;
+    const uVy = dvy / lenV;
+
+    // Vector along base (Foot -> BaseStart) - check which direction is "inward" or consistent
+    // Actually, we just need a perpendicular vector. We can rotate uV by 90 degrees.
+    // But to ensure it aligns with the line, let's use base points.
+    const dbx = baseEnd.x - baseStart.x;
+    const dby = baseEnd.y - baseStart.y;
+    const lenB = Math.sqrt(dbx*dbx + dby*dby);
+    if (lenB < 1) return "";
+    
+    // We want the vector along the base that points towards the main part of the triangle (usually Centroid)
+    // A simple heuristic: calculate the square point.
+    // P1 = Foot + size * uV
+    // P2 = Foot + size * uBase
+    // Corner = P1 + P2 - Foot
+    // We check two directions for uBase (+ and -) and see which Corner is closer to the triangle Centroid.
+    
+    const size = 10;
+    const uBx = dbx / lenB;
+    const uBy = dby / lenB;
+    
+    const pV = { x: foot.x + uVx * size, y: foot.y + uVy * size };
+    
+    // Candidate 1
+    const pB1 = { x: foot.x + uBx * size, y: foot.y + uBy * size };
+    const corner1 = { x: pV.x + uBx * size, y: pV.y + uBy * size };
+    
+    // Candidate 2
+    const pB2 = { x: foot.x - uBx * size, y: foot.y - uBy * size };
+    const corner2 = { x: pV.x - uBx * size, y: pV.y - uBy * size };
+    
+    const d1 = dist(corner1, centroid);
+    const d2 = dist(corner2, centroid);
+    
+    const finalCorner = d1 < d2 ? corner1 : corner2;
+    const finalPB = d1 < d2 ? pB1 : pB2;
+    
+    return `M ${pV.x} ${pV.y} L ${finalCorner.x} ${finalCorner.y} L ${finalPB.x} ${finalPB.y}`;
   };
 
   const handleVertexClick = (v: 'A' | 'B' | 'C') => (e: React.MouseEvent) => {
@@ -404,12 +532,36 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
                 <path d={`M ${points.A.x} ${points.A.y} L ${points.B.x} ${points.B.y} L ${points.C.x} ${points.C.y} Z`} fill="rgba(14, 165, 233, 0.1)" stroke="#0ea5e9" strokeWidth="3" />
             )}
 
-            {moduleId !== ModuleId.MIDDLE_LINE && moduleId !== ModuleId.CENTROID && moduleId !== ModuleId.ORTHOCENTER && moduleId !== ModuleId.CIRCUMCIRCLE && moduleId !== ModuleId.INCIRCLE && moduleId !== ModuleId.EXISTENCE && moduleId !== ModuleId.SIDE_ANGLE_RELATION && (
+            {/* Default Internal Angles (Except for modules that override them) */}
+            {moduleId !== ModuleId.MIDDLE_LINE && moduleId !== ModuleId.CENTROID && moduleId !== ModuleId.ORTHOCENTER && moduleId !== ModuleId.CIRCUMCIRCLE && moduleId !== ModuleId.INCIRCLE && moduleId !== ModuleId.EXISTENCE && moduleId !== ModuleId.SIDE_ANGLE_RELATION && moduleId !== ModuleId.EXTERNAL_ANGLES && (
                 <g className="pointer-events-none select-none">
-                    <text x={points.A.x} y={points.A.y - 15} textAnchor="middle" fill="#0284c7" className="text-sm font-black">{Math.round(angleA)}°</text>
-                    <text x={points.B.x - 20} y={points.B.y} textAnchor="middle" fill="#0284c7" className="text-sm font-black">{Math.round(angleB)}°</text>
-                    <text x={points.C.x + 20} y={points.C.y} textAnchor="middle" fill="#0284c7" className="text-sm font-black">{Math.round(angleC)}°</text>
+                    <text x={labelPosA.x} y={labelPosA.y} textAnchor="middle" fill="#0284c7" className="text-sm font-black drop-shadow-sm bg-white/50">{Math.round(angleA)}°</text>
+                    <text x={labelPosB.x} y={labelPosB.y} textAnchor="middle" fill="#0284c7" className="text-sm font-black drop-shadow-sm bg-white/50">{Math.round(angleB)}°</text>
+                    <text x={labelPosC.x} y={labelPosC.y} textAnchor="middle" fill="#0284c7" className="text-sm font-black drop-shadow-sm bg-white/50">{Math.round(angleC)}°</text>
                 </g>
+            )}
+
+            {/* External Angles Specific Logic */}
+            {moduleId === ModuleId.EXTERNAL_ANGLES && (
+                 <g className="pointer-events-none">
+                     {/* Dashed Extension Lines */}
+                     <line x1={points.C.x} y1={points.C.y} x2={extPointA.x} y2={extPointA.y} stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
+                     <line x1={points.A.x} y1={points.A.y} x2={extPointB.x} y2={extPointB.y} stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
+                     <line x1={points.B.x} y1={points.B.y} x2={extPointC.x} y2={extPointC.y} stroke="#94a3b8" strokeWidth="2" strokeDasharray="5,5" />
+
+                     {/* External Angle Wedges (Visualized between Side and Extension of other side) */}
+                     {/* Angle at A: Between AB and Ext(CA) */}
+                     <path d={getSector(points.A, points.B, extPointA, 40)} fill="rgba(239, 68, 68, 0.2)" stroke="#ef4444" strokeWidth="2" />
+                     <text x={getExternalLabelPos(points.A, points.B, extPointA).x} y={getExternalLabelPos(points.A, points.B, extPointA).y} textAnchor="middle" fill="#ef4444" className="text-sm font-black drop-shadow-sm bg-white/80 rounded-full px-1">{Math.round(extAngleA)}°</text>
+
+                     {/* Angle at B: Between BC and Ext(AB) */}
+                     <path d={getSector(points.B, points.C, extPointB, 40)} fill="rgba(59, 130, 246, 0.2)" stroke="#3b82f6" strokeWidth="2" />
+                     <text x={getExternalLabelPos(points.B, points.C, extPointB).x} y={getExternalLabelPos(points.B, points.C, extPointB).y} textAnchor="middle" fill="#3b82f6" className="text-sm font-black drop-shadow-sm bg-white/80 rounded-full px-1">{Math.round(extAngleB)}°</text>
+                     
+                     {/* Angle at C: Between CA and Ext(BC) */}
+                     <path d={getSector(points.C, points.A, extPointC, 40)} fill="rgba(34, 197, 94, 0.2)" stroke="#22c55e" strokeWidth="2" />
+                     <text x={getExternalLabelPos(points.C, points.A, extPointC).x} y={getExternalLabelPos(points.C, points.A, extPointC).y} textAnchor="middle" fill="#22c55e" className="text-sm font-black drop-shadow-sm bg-white/80 rounded-full px-1">{Math.round(extAngleC)}°</text>
+                 </g>
             )}
 
             {/* Visuals omitted for brevity, logic identical to previous, just wrapped in <> */}
@@ -431,9 +583,25 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
             {/* Middle Line */}
             {moduleId === ModuleId.MIDDLE_LINE && (
                 <g>
+                    {/* The Line */}
                     <line x1={midAC.x} y1={midAC.y} x2={midBC.x} y2={midBC.y} stroke="#ef4444" strokeWidth="4" />
-                    <circle cx={midAC.x} cy={midAC.y} r="5" fill="#ef4444" stroke="white" />
-                    <circle cx={midBC.x} cy={midBC.y} r="5" fill="#ef4444" stroke="white" />
+                    
+                    {/* Endpoints */}
+                    <circle cx={midAC.x} cy={midAC.y} r="6" fill="#ef4444" stroke="white" strokeWidth="2"/>
+                    <circle cx={midBC.x} cy={midBC.y} r="6" fill="#ef4444" stroke="white" strokeWidth="2"/>
+                    
+                    {/* Labels M and N */}
+                    <text x={midAC.x - 15} y={midAC.y - 15} className="font-bold fill-red-600">M</text>
+                    <text x={midBC.x + 15} y={midBC.y - 15} className="font-bold fill-red-600">N</text>
+
+                    {/* Length Labels */}
+                    {/* Middle Line Length */}
+                    <rect x={(midAC.x + midBC.x)/2 - 20} y={(midAC.y + midBC.y)/2 - 25} width="40" height="20" rx="4" fill="white" fillOpacity="0.8"/>
+                    <text x={(midAC.x + midBC.x)/2} y={(midAC.y + midBC.y)/2 - 10} textAnchor="middle" className="text-xs font-bold fill-red-600">{valMN}</text>
+
+                    {/* Base AB Length */}
+                    <rect x={(points.A.x + points.B.x)/2 - 20} y={(points.A.y + points.B.y)/2 + 10} width="40" height="20" rx="4" fill="white" fillOpacity="0.8"/>
+                    <text x={(points.A.x + points.B.x)/2} y={(points.A.y + points.B.y)/2 + 25} textAnchor="middle" className="text-xs font-bold fill-blue-600">{valAB}</text>
                 </g>
             )}
 
@@ -452,7 +620,15 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
                     ))}
 
                     {drawnMedians.A && drawnMedians.B && drawnMedians.C && (
-                        <circle cx={centroid.x} cy={centroid.y} r="8" fill="#1e293b" stroke="white" strokeWidth="2" />
+                        <g>
+                            <circle cx={centroid.x} cy={centroid.y} r="10" fill="#1e293b" stroke="white" strokeWidth="2" />
+                            <text x={centroid.x} y={centroid.y} dy=".3em" textAnchor="middle" className="text-[10px] font-bold fill-white">T</text>
+                            
+                            {/* Label A1 at midBC if median A is drawn */}
+                            {drawnMedians.A && (
+                                <text x={midBC.x + 10} y={midBC.y + 10} className="text-xs font-bold fill-slate-500">A₁</text>
+                            )}
+                        </g>
                     )}
                 </g>
             )}
@@ -466,13 +642,43 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
                             {drawSelection === m.id && !drawnAltitudes[m.id as 'A'|'B'|'C'] && <rect x={m.pt.x - 8} y={m.pt.y - 8} width="16" height="16" fill="#8b5cf6" fillOpacity="0.5" className="animate-pulse" />}
                         </g>)
                     ))}
+                    
+                    {/* Render each drawn altitude individually */}
+                    {[
+                      { drawn: drawnAltitudes.A, start: points.A, foot: altFootA, baseStart: points.B, baseEnd: points.C },
+                      { drawn: drawnAltitudes.B, start: points.B, foot: altFootB, baseStart: points.A, baseEnd: points.C },
+                      { drawn: drawnAltitudes.C, start: points.C, foot: altFootC, baseStart: points.A, baseEnd: points.B }
+                    ].map((alt, idx) => alt.drawn && (
+                         <g key={idx}>
+                             {/* The Altitude */}
+                             <line x1={alt.start.x} y1={alt.start.y} x2={alt.foot.x} y2={alt.foot.y} stroke="#8b5cf6" strokeWidth="2" />
+                             
+                             {/* Right Angle Marker */}
+                             <path d={getRightAnglePath(alt.foot, alt.start, alt.baseStart, alt.baseEnd)} fill="none" stroke="#8b5cf6" strokeWidth="1.5" />
+                             
+                             {/* Side Extension for Obtuse angles */}
+                             {alt.foot.t < 0 && (
+                                 <line x1={alt.baseStart.x} y1={alt.baseStart.y} x2={alt.foot.x} y2={alt.foot.y} stroke="#94a3b8" strokeWidth="2" strokeDasharray="4,4" />
+                             )}
+                             {alt.foot.t > 1 && (
+                                 <line x1={alt.baseEnd.x} y1={alt.baseEnd.y} x2={alt.foot.x} y2={alt.foot.y} stroke="#94a3b8" strokeWidth="2" strokeDasharray="4,4" />
+                             )}
+                         </g>
+                    ))}
+
+                    {/* Orthocenter Point - visible when all 3 drawn */}
                     {drawnAltitudes.A && drawnAltitudes.B && drawnAltitudes.C && (
-                        <>
-                        <line x1={points.A.x} y1={points.A.y} x2={orthocenter.x} y2={orthocenter.y} stroke="#8b5cf6" strokeWidth="2" strokeDasharray="4,4" />
-                        <line x1={points.B.x} y1={points.B.y} x2={orthocenter.x} y2={orthocenter.y} stroke="#8b5cf6" strokeWidth="2" strokeDasharray="4,4" />
-                        <line x1={points.C.x} y1={points.C.y} x2={orthocenter.x} y2={orthocenter.y} stroke="#8b5cf6" strokeWidth="2" strokeDasharray="4,4" />
-                        <circle cx={orthocenter.x} cy={orthocenter.y} r="8" fill="#5b21b6" stroke="white" strokeWidth="2" />
-                        </>
+                        <g>
+                            {/* Dashed lines from vertices to Orthocenter if outside */}
+                            {/* We just draw full lines intersection, but visually we might need extensions if outside */}
+                            {/* The dashed lines to intersection point are helpful for visual completion */}
+                            <line x1={altFootA.x} y1={altFootA.y} x2={orthocenter.x} y2={orthocenter.y} stroke="#8b5cf6" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
+                            <line x1={altFootB.x} y1={altFootB.y} x2={orthocenter.x} y2={orthocenter.y} stroke="#8b5cf6" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
+                            <line x1={altFootC.x} y1={altFootC.y} x2={orthocenter.x} y2={orthocenter.y} stroke="#8b5cf6" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
+                            
+                            <circle cx={orthocenter.x} cy={orthocenter.y} r="10" fill="#5b21b6" stroke="white" strokeWidth="2" />
+                            <text x={orthocenter.x} y={orthocenter.y} dy=".3em" textAnchor="middle" className="text-[10px] font-bold fill-white">H</text>
+                        </g>
                     )}
                 </g>
             )}
@@ -490,7 +696,11 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
                     {drawnBisectors.B && <line x1={pbAC.x1} y1={pbAC.y1} x2={pbAC.x2} y2={pbAC.y2} stroke="#06b6d4" strokeWidth="1" strokeDasharray="4,4" />}
                     {drawnBisectors.C && <line x1={pbAB.x1} y1={pbAB.y1} x2={pbAB.x2} y2={pbAB.y2} stroke="#06b6d4" strokeWidth="1" strokeDasharray="4,4" />}
                     {drawnBisectors.A && drawnBisectors.B && drawnBisectors.C && (
-                        <circle cx={circumcenter.x} cy={circumcenter.y} r={circumRadius} fill="none" stroke="#06b6d4" strokeWidth="3" opacity="0.5" />
+                        <g>
+                            <circle cx={circumcenter.x} cy={circumcenter.y} r={circumRadius} fill="none" stroke="#06b6d4" strokeWidth="3" opacity="0.5" />
+                            <circle cx={circumcenter.x} cy={circumcenter.y} r="10" fill="black" stroke="white" strokeWidth="2" />
+                            <text x={circumcenter.x} y={circumcenter.y} dy=".3em" textAnchor="middle" className="text-[10px] font-bold fill-white">O</text>
+                        </g>
                     )}
                 </g>
             )}
@@ -520,9 +730,9 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
       </div>
 
       {/* Info Cards */}
-      <div className="mt-6 grid grid-cols-2 gap-4 w-full">
+      <div className="mt-6 w-full">
          {moduleId === ModuleId.TYPES && (
-            <>
+            <div className="grid grid-cols-2 gap-4">
                 <div className="bg-purple-50 p-3 rounded-2xl text-center border border-purple-100">
                     <p className="text-xs font-bold text-purple-400 uppercase">Страни</p>
                     <p className={`text-lg font-black ${typeColor}`}>{isEquilateral ? 'Рамностран' : isIsosceles ? 'Рамнокрак' : 'Разностран'}</p>
@@ -531,7 +741,90 @@ const TriangleVisualizer: React.FC<Props> = ({ moduleId }) => {
                     <p className="text-xs font-bold text-emerald-400 uppercase">Агли</p>
                     <p className={`text-lg font-black ${angleTypeColor}`}>{isRight ? 'Правоаголен' : isObtuse ? 'Тапоаголен' : 'Остроаголен'}</p>
                 </div>
-            </>
+            </div>
+        )}
+        
+        {/* Dynamic Sum Window for Internal Angles */}
+        {moduleId === ModuleId.INTERNAL_ANGLES && (
+            <div className="bg-blue-600 text-white p-4 rounded-2xl shadow-lg border-2 border-blue-400/30 flex items-center justify-center gap-4 animate-fade-in">
+                <div className="flex items-center gap-2 text-xl md:text-2xl font-black font-mono">
+                    <span>{Math.round(angleA)}°</span>
+                    <span className="text-blue-300">+</span>
+                    <span>{Math.round(angleB)}°</span>
+                    <span className="text-blue-300">+</span>
+                    <span>{Math.round(angleC)}°</span>
+                    <span className="text-blue-300">=</span>
+                    <span className="text-yellow-300">{Math.round(angleA + angleB + angleC)}°</span>
+                </div>
+            </div>
+        )}
+
+        {/* Dynamic Sum Window for External Angles */}
+        {moduleId === ModuleId.EXTERNAL_ANGLES && (
+            <div className="bg-amber-600 text-white p-4 rounded-2xl shadow-lg border-2 border-amber-400/30 flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 animate-fade-in">
+                <div className="text-amber-100 text-xs font-bold uppercase tracking-widest mb-1 md:mb-0">Збир на надворешни агли</div>
+                <div className="flex items-center gap-2 text-xl md:text-2xl font-black font-mono">
+                    <span className="text-red-200">{Math.round(extAngleA)}°</span>
+                    <span className="text-amber-300">+</span>
+                    <span className="text-blue-200">{Math.round(extAngleB)}°</span>
+                    <span className="text-amber-300">+</span>
+                    <span className="text-green-200">{Math.round(extAngleC)}°</span>
+                    <span className="text-amber-300">=</span>
+                    <span className="text-yellow-300">{Math.round(extAngleA + extAngleB + extAngleC)}°</span>
+                </div>
+            </div>
+        )}
+
+        {/* Dynamic Window for Middle Line */}
+        {moduleId === ModuleId.MIDDLE_LINE && (
+            <div className="bg-indigo-600 text-white p-4 rounded-2xl shadow-lg border-2 border-indigo-400/30 flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 animate-fade-in">
+               <div className="text-indigo-100 text-xs font-bold uppercase tracking-widest mb-1 md:mb-0 mr-2">Својство на средна линија</div>
+               <div className="flex items-center gap-3 text-xl md:text-2xl font-black font-mono">
+                  {/* MN with overline */}
+                  <span className="overline decoration-2 decoration-white/50">MN</span>
+                  
+                  <span>=</span>
+                  
+                  {/* AB / 2 Fraction */}
+                  <div className="flex flex-col items-center justify-center leading-none">
+                      <span className="text-indigo-200 overline decoration-2 decoration-indigo-200/50 border-b-2 border-white/40 pb-1 mb-1 px-1">AB</span>
+                      <span className="text-lg">2</span>
+                  </div>
+
+                  <span>=</span>
+
+                  {/* Value / 2 Fraction */}
+                  <div className="flex flex-col items-center justify-center leading-none">
+                      <span className="text-blue-300 border-b-2 border-white/40 pb-1 mb-1 px-1">{valAB}</span>
+                      <span className="text-lg">2</span>
+                  </div>
+
+                  <span>=</span>
+
+                  <span className="text-yellow-300">{valMN}</span>
+               </div>
+            </div>
+        )}
+
+        {/* Dynamic Window for Centroid */}
+        {moduleId === ModuleId.CENTROID && (
+            <div className="bg-rose-600 text-white p-4 rounded-2xl shadow-lg border-2 border-rose-400/30 flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 animate-fade-in">
+               <div className="text-rose-100 text-xs font-bold uppercase tracking-widest mb-1 md:mb-0 mr-2">Својство на тежиште</div>
+               <div className="flex items-center gap-3 text-xl md:text-2xl font-black font-mono">
+                  {/* AT : TA1 */}
+                  <span className="overline decoration-2 decoration-white/50">AT</span>
+                  <span>:</span>
+                  <span className="overline decoration-2 decoration-white/50">TA₁</span>
+                  
+                  <span>=</span>
+                  <span className="text-rose-200">{valAT}</span>
+                  <span>:</span>
+                  <span className="text-rose-200">{valTA1}</span>
+
+                  <span>=</span>
+                  <span className="text-yellow-300">2 : 1</span>
+               </div>
+            </div>
         )}
         
         {/* ... More detailed info cards omitted but structure applies ... */}

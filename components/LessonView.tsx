@@ -84,6 +84,10 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
           <line x1="30" y1="50" x2="70" y2="50" stroke="#ef4444" strokeWidth="3" />
           <text x="30" y="42" textAnchor="middle" className="text-[12px] fill-red-700 font-extrabold">D</text>
           <text x="70" y="42" textAnchor="middle" className="text-[12px] fill-red-700 font-extrabold">E</text>
+          {/* Vertices */}
+          <text x="50" y="10" textAnchor="middle" className="text-[10px] font-bold fill-slate-500">C</text>
+          <text x="5" y="90" className="text-[10px] font-bold fill-slate-500">A</text>
+          <text x="95" y="90" textAnchor="end" className="text-[10px] font-bold fill-slate-500">B</text>
        </g>
     )
   },
@@ -93,9 +97,10 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
     decor: (
       <g>
          <line x1="30" y1="50" x2="70" y2="50" stroke="#ef4444" strokeWidth="3" />
-         {/* Parallel Arrows */}
-         <path d="M 48 50 L 52 53 L 48 56" fill="none" stroke="#ef4444" strokeWidth="2" />
-         <path d="M 48 85 L 52 88 L 48 91" fill="none" stroke="#0ea5e9" strokeWidth="2" />
+         {/* Vertices */}
+         <text x="50" y="10" textAnchor="middle" className="text-[10px] font-bold fill-slate-500">C</text>
+         <text x="5" y="90" className="text-[10px] font-bold fill-slate-500">A</text>
+         <text x="95" y="90" textAnchor="end" className="text-[10px] font-bold fill-slate-500">B</text>
       </g>
     )
   },
@@ -107,6 +112,10 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
          <line x1="30" y1="50" x2="70" y2="50" stroke="#ef4444" strokeWidth="3" />
          <text x="50" y="45" textAnchor="middle" className="text-[10px] fill-red-700 font-extrabold">a/2</text>
          <text x="50" y="95" textAnchor="middle" className="text-[10px] fill-blue-700 font-extrabold">a</text>
+         {/* Vertices */}
+         <text x="50" y="10" textAnchor="middle" className="text-[10px] font-bold fill-slate-500">C</text>
+         <text x="5" y="90" className="text-[10px] font-bold fill-slate-500">A</text>
+         <text x="95" y="90" textAnchor="end" className="text-[10px] font-bold fill-slate-500">B</text>
       </g>
     )
   },
@@ -185,8 +194,11 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
     path: "M 50 15 L 90 85 L 10 85 Z",
     decor: (
       <g>
-         {/* Circle passing through points */}
-         <circle cx="50" cy="58" r="44" fill="none" stroke="#06b6d4" strokeWidth="3" />
+         {/* Circle passing through points. 
+             Circumcenter calculation for (50,15), (90,85), (10,85):
+             Center = (50, 61.43), Radius = 46.43
+         */}
+         <circle cx="50" cy="61.43" r="46.43" fill="none" stroke="#06b6d4" strokeWidth="3" />
          <circle cx="50" cy="15" r="3" fill="#06b6d4" />
          <circle cx="90" cy="85" r="3" fill="#06b6d4" />
          <circle cx="10" cy="85" r="3" fill="#06b6d4" />
@@ -199,12 +211,12 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
     decor: (
       <g>
          {/* Perpendicular Bisectors */}
-         <line x1="50" y1="58" x2="50" y2="95" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="3" />
-         <line x1="50" y1="58" x2="10" y2="25" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="3" />
-         <line x1="50" y1="58" x2="90" y2="25" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="3" />
+         <line x1="50" y1="61.43" x2="50" y2="95" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="3" />
+         <line x1="50" y1="61.43" x2="10" y2="25" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="3" />
+         <line x1="50" y1="61.43" x2="90" y2="25" stroke="#06b6d4" strokeWidth="1.5" strokeDasharray="3" />
          
-         <circle cx="50" cy="58" r="4" fill="#06b6d4" stroke="white" />
-         <text x="56" y="55" className="text-[12px] font-extrabold fill-cyan-800">O</text>
+         <circle cx="50" cy="61.43" r="4" fill="#06b6d4" stroke="white" />
+         <text x="56" y="58" className="text-[12px] font-extrabold fill-cyan-800">O</text>
          
          {/* Perpendicular marker on bottom side */}
          <path d="M 48 85 L 48 80 L 52 80 L 52 85" fill="none" stroke="#06b6d4" strokeWidth="1.5" />
@@ -273,7 +285,7 @@ const TRIANGLE_ASSETS: Record<string, { path: string, viewBox: string, decor?: R
          <text x="30" y="50" textAnchor="middle" className="text-[10px] font-extrabold fill-blue-800">b</text>
          <text x="50" y="90" textAnchor="middle" className="text-[10px] font-extrabold fill-red-700">c</text>
          {/* Visual equation */}
-         <text x="50" y="10" textAnchor="middle" className="text-[12px] font-extrabold fill-slate-900">a + b &gt; c</text>
+         <text x="50" y="10" textAnchor="middle" className="text-[12px] font-extrabold fill-slate-900">a + b > c</text>
       </g>
     )
   },
@@ -343,6 +355,8 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
   const showExternalSum = node.id === 'sum_ext';
   const showExternalTheorem = node.id === 'relation';
 
+  const isInteractive = showIntroDef || showInternalSum || showExternalSupp || showExternalSum || showExternalTheorem;
+
   // Check for static visual asset
   const visualAsset = TRIANGLE_ASSETS[node.id];
 
@@ -385,8 +399,8 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
             {showExternalTheorem && <ExternalAnglesVisuals mode="theorem" />}
         </div>
 
-        {/* Text Content */}
-        {!showInternalSum && !showExternalSupp && !showExternalSum && !showExternalTheorem && !showIntroDef && (
+        {/* Text Content - Only hide for internal sum if animation is showing (it has its own text now), but often helpful to keep context */}
+        {!isInteractive && (
             <div className={`text-slate-800 font-medium ${isLarge ? 'prose prose-2xl max-w-none text-center px-8' : 'text-lg prose prose-slate prose-p:text-slate-800 prose-p:leading-relaxed prose-p:my-4 leading-relaxed'}`}>
                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                     {node.content}
@@ -394,15 +408,12 @@ const FlowNode: React.FC<Props> = ({ node, depth = 0 }) => {
             </div>
         )}
         
-        {/* Helper text for animated nodes */}
-        {(showExternalSum || showExternalTheorem) && (
-             <div className={`text-slate-700 mt-4 font-bold bg-yellow-50 p-4 rounded-xl border border-yellow-100 ${isLarge ? 'text-2xl text-center' : 'text-base'}`}>
-                 <Info size={isLarge ? 24 : 16} className="inline-block mr-2 text-yellow-600 mb-1" />
-                 <span className="italic">
-                    <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
-                        {node.content}
-                    </ReactMarkdown>
-                 </span>
+        {/* If Interactive, sometimes we still want the basic definition text if it's not redundant */}
+        {isInteractive && !showInternalSum && (
+             <div className="mt-2 text-slate-600 font-medium text-base">
+                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                    {node.content}
+                </ReactMarkdown>
              </div>
         )}
       </>
